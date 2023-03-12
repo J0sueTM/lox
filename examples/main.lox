@@ -1,0 +1,5 @@
+a = 2
+
+while (true) {
+    print "hello"
+}
