@@ -31,15 +31,15 @@ int main(
     return EXIT_FAILURE;
   }
 
-  lox_token_t *head_token = lox_lexer_analyze_source(source);
-  if (head_token == NULL)
+  lox_lexer_t *lexer = lox_lexer_analyze_source(source);
+  if (lexer == NULL)
   {
     return EXIT_FAILURE;
   }
 
-  lox_lexer_debug_tokens(head_token);
+  lox_lexer_debug_tokens(lexer);
 
-  // lox_lexer_clean(head_token);
+  lox_lexer_clean(lexer);
 
   return EXIT_SUCCESS;
 }

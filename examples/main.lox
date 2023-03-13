@@ -1,5 +1,5 @@
-a = 2
-
-while (true) {
-    print "hello"
+fn main() {
+    # this is a comment
+    print(13333.4 * 123456789)
+    print("hello, my name is Josue")
 }
