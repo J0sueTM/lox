@@ -135,6 +135,41 @@ lox_push_identifier_to_slot
   }
 }
 
+
+lox_identifier_t *
+lox_find_identifier
+(
+  lox_identifier_table_t *_table,
+  char                   *_name
+)
+{
+  if (_table == NULL)
+  {
+    fprintf(stderr, "given table wasn't allocated\n");
+
+    return NULL;
+  }
+
+  const int position = lox_get_identifier_position(_name);
+  if (position < 0)
+  {
+    return NULL;
+  }
+
+  lox_identifier_t *current_identifier = _table->head_slots[position];
+  while (current_identifier != NULL)
+  {
+    if (current_identifier->name == _name)
+    {
+      break;
+    }
+
+    current_identifier = current_identifier->next;
+  }
+
+  return current_identifier;
+}
+
 void
 lox_debug_identifier_table
 (

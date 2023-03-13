@@ -68,6 +68,13 @@ lox_push_identifier_to_slot
   lox_identifier_t       *_identifier
 );
 
+lox_identifier_t *
+lox_find_identifier
+(
+  lox_identifier_table_t *_table,
+  char                   *_name
+);
+
 void
 lox_debug_identifier_table
 (

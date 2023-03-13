@@ -219,7 +219,9 @@ lox_token_t
         }
         else if (lox_lexer_verify_alpha(*current_char))
         {
+          int chars_to_skip = lox_lexer_scan_identifier(_lexer, current_token, current_char);
 
+          char_count += chars_to_skip;
         }
         else
         {
@@ -254,14 +256,13 @@ lox_lexer_scan_long_lexeme
   bool has_compare = lox_lexer_look_ahead_and_match(_lexeme, _compare + 1);
 
   const unsigned long compare_length = strlen(_compare);
-  char *lexeme = malloc(compare_length * sizeof(char));
+  char *lexeme = calloc(compare_length, sizeof(char));
   if (lexeme == NULL)
   {
     fprintf(stderr, "failed to allocate memory for %c lexeme\n", *_lexeme);
 
     return -1;
   }
-  memset(lexeme, '\0', compare_length);
 
   lox_token_e token_type = _long_token;
   int chars_to_skip = (int)(compare_length);
@@ -321,14 +322,13 @@ lox_lexer_scan_string
     return -1;
   }
 
-  char *string_buffer = malloc(string_length * sizeof(char));
+  char *string_buffer = calloc(string_length, sizeof(char));
   if (string_buffer == NULL)
   {
     fprintf(stderr, "failed to allocate memory while reading string\n");
 
     return -1;
   }
-  memset(string_buffer, '\0', string_length);
   strncpy(string_buffer, (_lexeme + 1), string_length);
 
   lox_push_token(_lexer, _current_token, LOX_STRING,
@@ -376,14 +376,13 @@ lox_lexer_scan_number
     ++current_char;
   }
 
-  char *number_buffer = malloc(number_length * sizeof(char));
+  char *number_buffer = calloc(number_length, sizeof(char));
   if (number_buffer == NULL)
   {
     fprintf(stderr, "failed to allocate memory for number lexeme\n");
 
     return -1;
   }
-  memset(number_buffer, '\0', number_length);
   strncpy(number_buffer, _lexeme, number_length);
 
   char *temp_buffer;
@@ -428,6 +427,27 @@ lox_lexer_scan_identifier
     ++identifier_length;
   }
 
+  char *identifier_name_buffer = calloc(identifier_length, sizeof(char));
+  if (identifier_name_buffer == NULL)
+  {
+    fprintf(stderr, "failed to allocate memory for identifier buffer\n");
+
+    return -1;
+  }
+  strncpy(identifier_name_buffer, _lexeme, identifier_length);
+  
+  lox_identifier_t *identifier = lox_find_identifier(_lexer->identifier_table, identifier_name_buffer);
+  if (identifier == NULL)
+  {
+    lox_push_token(_lexer, _current_token, LOX_IDENTIFIER, "id", false, identifier_name_buffer);
+  }
+  else
+  {
+    lox_push_token(_lexer, _current_token, identifier->type, "id", false, identifier->name);
+
+    free(identifier_name_buffer);
+  }
+
   return identifier_length;
 }
 
@@ -453,7 +473,7 @@ lox_lexer_debug_tokens
   long token_count = 0;
   while (current_token != NULL && token_count < _lexer->token_count)
   {
-    printf("[%p]: %s %p\n", current_token, current_token->lexeme,
+    printf("tok [%p]: %s %p\n", current_token, current_token->lexeme,
            (current_token->literal != NULL) ? current_token->literal : NULL);
 
     current_token = current_token->next;
@@ -479,7 +499,8 @@ lox_lexer_clean
       free(current_token->lexeme);
     }
 
-    if (current_token->literal != NULL)
+    if (current_token->literal != NULL &&
+        current_token->type == LOX_IDENTIFIER)
     {
       free(current_token->literal);
     }
