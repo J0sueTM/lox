@@ -1,9 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <malloc.h>
-#include <stdbool.h>
-#include <string.h>
-
+#include "base.h"
 #include "lexer.h"
 
 FILE *parse_args(
@@ -37,6 +32,7 @@ int main(
     return EXIT_FAILURE;
   }
 
+  lox_debug_identifier_table(lexer->identifier_table);
   lox_lexer_debug_tokens(lexer);
 
   lox_lexer_clean(lexer);

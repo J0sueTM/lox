@@ -9,6 +9,17 @@ lox_lexer_verify_digit
   return (_digit >= '0' && _digit <= '9');
 }
 
+static bool
+lox_lexer_verify_alpha
+(
+  char _char
+)
+{
+  return (_char >= 'a' && _char <= 'z') ||
+         (_char >= 'A' && _char <= 'Z') ||
+         (_char == '_');
+}
+
 lox_token_t
 *lox_push_token
 (
@@ -57,6 +68,12 @@ lox_lexer_t
     return NULL;
   }
   new_lexer->line_count = 0;
+
+  new_lexer->identifier_table = lox_create_and_populate_identifier_table();
+  if (new_lexer->identifier_table == NULL)
+  {
+    return NULL;
+  }
 
   new_lexer->head = lox_push_token(new_lexer,
                                    NULL,
@@ -200,6 +217,10 @@ lox_token_t
 
           char_count += chars_to_skip;
         }
+        else if (lox_lexer_verify_alpha(*current_char))
+        {
+
+        }
         else
         {
           fprintf(stderr, "unexpected character %c\n", *current_char);
@@ -311,7 +332,7 @@ lox_lexer_scan_string
   strncpy(string_buffer, (_lexeme + 1), string_length);
 
   lox_push_token(_lexer, _current_token, LOX_STRING,
-                 "\"", false, (void *)string_buffer);
+                 "string", false, (void *)string_buffer);
 
   return string_length + 1;
 }
@@ -383,6 +404,33 @@ lox_lexer_scan_number
   return number_length;
 }
 
+int
+lox_lexer_scan_identifier
+(
+  lox_lexer_t *_lexer,
+  lox_token_t *_current_token,
+  char        *_lexeme
+)
+{
+  if (!lox_lexer_verify_alpha(*_lexeme))
+  {
+    fprintf(stderr, "given lexeme isn't alpha");
+
+    return -1;
+  }
+
+  int identifier_length = 0;
+  char *current_char = _lexeme;
+  while (lox_lexer_verify_alpha(*current_char) ||
+         lox_lexer_verify_digit(*current_char))
+  {
+    ++current_char;
+    ++identifier_length;
+  }
+
+  return identifier_length;
+}
+
 bool
 lox_lexer_look_ahead_and_match(
   char *_lexeme,
@@ -419,6 +467,8 @@ lox_lexer_clean
   lox_lexer_t *_lexer
 )
 {
+  lox_clean_identifier_table(_lexer->identifier_table);
+
   lox_token_t *current_token, *next_token;
   current_token = _lexer->head;
   next_token = current_token->next;
